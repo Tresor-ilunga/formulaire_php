@@ -1,3 +1,47 @@
+<?php
+
+	session_start();
+
+	// Inclure les classes
+	require_once('classes/Securite.php');
+	require_once('classes/Utilisateur.php');
+	require_once('classes/Verifier.php');
+
+	if(!empty($_POST['pseudo']) && !empty($_POST['email']) && !empty($_POST['password'])) {
+
+		// Variables
+		$pseudo			= htmlspecialchars($_POST['pseudo']);
+		$email			= htmlspecialchars($_POST['email']);
+		$password		= htmlspecialchars($_POST['password']);
+
+		// Vérifier la syntaxe de l'email
+		if(!Verifier::syntaxeEmail($email)) {
+			header('location: index.php?error=true&message=Veuillez vérifier le format de votre adresse email.');
+			exit();
+		}
+
+		// Vérifier doublon de l'email
+		if(Verifier::doublonEmail($email)) {
+			header('location: index.php?error=true&message=Cette adresse email est déjà utilisée.');
+			exit();
+		}
+
+		// Chiffrer le mot de passe
+		$password = Securite::chiffrer($password);
+
+		// Ajouter un utilisateur
+		$utilisateur = new users($pseudo, $email, $password);
+		$utilisateur->enregistrer();
+		$utilisateur->creerLesSessions();
+
+		// Rediriger
+		header('location: index.php?success=true');
+		exit();
+
+	}
+
+?>
+
 <!DOCTYPE html>
 <html>
 <head>
